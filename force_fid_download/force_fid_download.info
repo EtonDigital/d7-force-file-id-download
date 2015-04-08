@@ -1,0 +1,3 @@
+name = Force fid Download
+description = Adds support for forcing file download based on given file id
+core = 7.x

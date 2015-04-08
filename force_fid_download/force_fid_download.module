@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function force_fid_download_menu(){
+  $items['download/%'] = array(
+    'page callback' => 'force_download_file',
+    'page arguments' => array(1),
+    'access callback' => true,
+  );
+}
+
+
+/**
+ * Forces file download but only if user has access to the file
+ *
+ * @param numeric $fid
+ */
+function force_download_file($fid = null){
+  //check if fid is acctually passed
+  if (!$fid) {
+    drupal_not_found();
+  }
+
+  //check if passed fid is numeric
+  if (!is_numeric($fid)){
+    drupal_not_found();
+  }
+
+  // try to load file based on fid
+  $file = file_load($fid);
+
+  //check if file with the given fid exists
+  if ($file) {
+    // check if user has access to download file
+    if (file_download_access($file->uri)) {
+      // decompose file URI
+      $uri = str_replace('/', '', strrchr($file->uri, '/'));
+
+      // set headers and go to download
+      drupal_add_http_header('Content-Disposition', 'attachment; filename=' . $file->filename);
+      file_download('public', $uri);
+    } else {
+      drupal_access_denied();
+    }
+  } else {
+    drupal_not_found();
+  }
+}
