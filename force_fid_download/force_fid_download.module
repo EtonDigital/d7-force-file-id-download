@@ -35,12 +35,16 @@ function force_download_file($fid = null){
   if ($file) {
     // check if user has access to download file
     if (file_download_access($file->uri)) {
-      // decompose file URI
-      $uri = str_replace('/', '', strrchr($file->uri, '/'));
-
-      // set headers and go to download
-      drupal_add_http_header('Content-Disposition', 'attachment; filename=' . $file->filename);
-      file_download('public', $uri);
+      // check if physical file exists 
+      if (file_exists($file->uri)) {
+        // set headers and go to download
+        drupal_add_http_header('Content-Disposition', 'attachment; filename=' . $file->filename);
+        $headers = file_download_headers($file->uri);
+        file_transfer($file->uri, $headers);
+      }
+      else {
+        drupal_not_found();
+      }
     } else {
       drupal_access_denied();
     }
